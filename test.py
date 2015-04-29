@@ -1,30 +1,34 @@
 import cv2 as oc
 import numpy as np
 
-from flask import Flask, request, redirect, render_template
+import socket
+import Adafruit_BBIO.UART as UART
+import SocketServer
+import SimpleHTTPServer
 
-app = Flask(__name__)
-@app.route("/", methods=['GET', 'POST'])
-def hello_monkey():
-	return render_template('index.html')
+PORT = 80
 
+class CustomHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+    def log_message(self, format, *args):
+        return
+ 
+    def do_GET(self):
+        print self.path 	
+        SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 
-if __name__ == "__main__":
-	print "Hello Opencv"
-	filename = 'chessboard.jpg'
-	img = oc.imread(filename)
-	gray = oc.cvtColor(img,oc.COLOR_BGR2GRAY)
+filename = 'chessboard.jpg'
+img = oc.imread(filename)
+gray = oc.cvtColor(img,oc.COLOR_BGR2GRAY)
+gray = np.float32(gray)
+dst = oc.cornerHarris(gray,2,3,0.04)
 
-	gray = np.float32(gray)
-	dst = oc.cornerHarris(gray,2,3,0.04)
+dst = oc.dilate(dst,None)
 
-	#result is dilated for marking the corners, not important
-	dst = oc.dilate(dst,None)
+img[dst>0.01*dst.max()]=[0,0,255]
 
-	# Threshold for an optimal value, it may vary depending on the image.
-	img[dst>0.01*dst.max()]=[0,0,255]
+oc.imwrite('dst.jpg',img)
 
-	oc.imwrite('dst.jpg',img)
-
-
-	app.run( host='0.0.0.0', debug=True, port = 80)
+httpd = SocketServer.ThreadingTCPServer(('', PORT),CustomHandler)
+ 
+print "serving at port", PORT
+httpd.serve_forever()

@@ -2,7 +2,6 @@ import cv2 as oc
 import numpy as np
 
 import socket
-import Adafruit_BBIO.UART as UART
 import SocketServer
 import SimpleHTTPServer
 

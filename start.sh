@@ -9,5 +9,6 @@ echo "root:$PASSWD" | chpasswd
 dropbear -E -F-s &
 
 echo hello Resin
-python /app/test.py
+cd /app
+python test.py
 sleep 9999999999
